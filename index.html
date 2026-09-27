@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0">
+<meta name="theme-color" content="#2F5496">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="PMP Study">
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<title>PMP Study App</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --surface:#ffffff; --surface-2:#f1f3f6;
+    --text:#1a2233; --text-muted:#5b6472; --border:#e2e5ea;
+    --primary:#2f5496; --primary-dark:#1f3a6e; --primary-tint:#e8eefb;
+    --people:#2f6f4e; --people-tint:#e6f4ec;
+    --process:#2f5496; --process-tint:#e8eefb;
+    --biz:#8a4b12; --biz-tint:#faeee0;
+    --good:#1e7d4b; --good-tint:#e3f5ea;
+    --bad:#b3261e; --bad-tint:#fbe9e8;
+    --warn:#8a6d1a; --warn-tint:#fbf1d6;
+    --shadow: 0 1px 2px rgba(20,25,40,0.06), 0 4px 14px rgba(20,25,40,0.06);
+    --radius:14px;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#12151c; --surface:#1a1e28; --surface-2:#20242f;
+      --text:#e8ebf1; --text-muted:#a1a8b6; --border:#2b3040;
+      --primary:#7ea6e8; --primary-dark:#a9c4f0; --primary-tint:#1c2740;
+      --people:#7fd3a6; --people-tint:#12281d;
+      --process:#7ea6e8; --process-tint:#1c2740;
+      --biz:#e8b374; --biz-tint:#2c2010;
+      --good:#7fd3a6; --good-tint:#12281d;
+      --bad:#f0968f; --bad-tint:#2e1614;
+      --warn:#e8cf7e; --warn-tint:#2c2510;
+      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 4px 14px rgba(0,0,0,0.35);
+    }
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; background:var(--bg); color:var(--text); line-height:1.45;}
+  body{padding-bottom:calc(72px + env(safe-area-inset-bottom));}
+  .wrap{max-width:560px; margin:0 auto; padding:16px 16px 24px;}
+  header.top{position:sticky; top:0; z-index:5; background:var(--bg); padding:calc(10px + env(safe-area-inset-top)) 16px 10px; border-bottom:1px solid var(--border);}
+  header.top h1{font-size:1.05rem; margin:0; text-align:center;}
+  .card{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; margin-bottom:14px;}
+  .pill{display:inline-flex; align-items:center; gap:5px; font-size:0.72rem; font-weight:700; padding:4px 10px; border-radius:999px;}
+  .pill.ok{background:var(--good-tint); color:var(--good);}
+  .pill.warn{background:var(--warn-tint); color:var(--warn);}
+  .pill.bad{background:var(--bad-tint); color:var(--bad);}
+  .pill.muted{background:var(--surface-2); color:var(--text-muted);}
+
+  nav.bottom{position:fixed; left:0; right:0; bottom:0; background:var(--surface); border-top:1px solid var(--border);
+    display:flex; padding-bottom:env(safe-area-inset-bottom); z-index:10;}
+  nav.bottom button{flex:1; border:none; background:none; color:var(--text-muted); padding:9px 4px 8px; font-size:0.68rem; font-weight:600;
+    display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer;}
+  nav.bottom button .ic{font-size:1.25rem; line-height:1;}
+  nav.bottom button.active{color:var(--primary);}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .filters{display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap;}
+  .chip{border:1px solid var(--border); background:var(--surface); color:var(--text-muted); padding:7px 14px; border-radius:999px; font-size:0.82rem; cursor:pointer; font-weight:600;}
+  .chip.on{color:#fff;}
+  .chip[data-domain="All"].on{background:var(--primary-dark); border-color:var(--primary-dark);}
+  .chip[data-domain="People"].on{background:var(--people); border-color:var(--people);}
+  .chip[data-domain="Process"].on{background:var(--process); border-color:var(--process);}
+  .chip[data-domain="Business Environment"].on{background:var(--biz); border-color:var(--biz);}
+
+  .flashcard{min-height:180px; border-radius:var(--radius); border:1px solid var(--border); display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:26px 20px; cursor:pointer; font-size:1.05rem; user-select:none; background:var(--surface-2);}
+  .flashcard.people{background:var(--people-tint);} .flashcard.process{background:var(--process-tint);} .flashcard.biz{background:var(--biz-tint);}
+  .flashcard .hint{display:block; margin-top:12px; font-size:0.76rem; color:var(--text-muted); font-weight:500;}
+  .fc-meta{display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;}
+  .fc-controls{display:flex; gap:8px; margin-top:14px; flex-wrap:wrap;}
+  .fc-controls.row2{margin-top:8px;}
+  button.btn{border:none; border-radius:10px; padding:12px 16px; font-size:0.88rem; font-weight:700; cursor:pointer; flex:1;}
+  .btn-primary{background:var(--primary); color:#fff;}
+  .btn-ghost{background:var(--surface-2); color:var(--text); border:1px solid var(--border);}
+  .btn-good{background:var(--good); color:#fff;}
+  .btn-bad{background:var(--bad); color:#fff;}
+  .fc-tally{text-align:center; margin-top:10px; font-size:0.78rem; color:var(--text-muted);}
+
+  .quiz-start p{color:var(--text-muted); font-size:0.88rem; margin:8px 0 16px;}
+  .q-progress{font-size:0.8rem; color:var(--text-muted); margin-bottom:6px;}
+  .q-domain-tag{display:inline-block; font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.03em; padding:3px 9px; border-radius:999px; margin-bottom:10px;}
+  .q-domain-tag.people{background:var(--people-tint); color:var(--people);}
+  .q-domain-tag.process{background:var(--process-tint); color:var(--process);}
+  .q-domain-tag.biz{background:var(--biz-tint); color:var(--biz);}
+  .q-text{font-size:1.02rem; font-weight:600; margin:0 0 14px;}
+  .option{display:block; width:100%; text-align:left; padding:13px 14px; margin-bottom:9px; border:1px solid var(--border); border-radius:10px;
+    background:var(--surface); color:var(--text); font-size:0.9rem; cursor:pointer;}
+  .option.correct{background:var(--good-tint); border-color:var(--good); font-weight:600;}
+  .option.incorrect{background:var(--bad-tint); border-color:var(--bad);}
+  .explanation{margin-top:12px; padding:12px 14px; background:var(--surface-2); border-radius:10px; font-size:0.84rem; color:var(--text-muted); display:none;}
+  .explanation.show{display:block;}
+  .quiz-footer{display:flex; gap:10px; margin-top:14px;}
+
+  .bar-row{display:flex; align-items:center; gap:10px; margin:10px 0; font-size:0.82rem;}
+  .bar-label{width:130px; flex-shrink:0; color:var(--text-muted);}
+  .bar-track{flex:1; height:12px; background:var(--surface-2); border-radius:999px; overflow:hidden;}
+  .bar-fill{height:100%; border-radius:999px; background:var(--primary);}
+  .bar-pct{width:40px; text-align:right; font-weight:700; font-size:0.8rem;}
+
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .stat{background:var(--surface-2); border-radius:10px; padding:12px;}
+  .stat .num{font-size:1.4rem; font-weight:800; color:var(--primary);}
+  .stat .lbl{font-size:0.74rem; color:var(--text-muted); margin-top:2px;}
+
+  .sync-row{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .week-item, .task-item{border-bottom:1px solid var(--border); padding:12px 0;}
+  .week-item:last-child, .task-item:last-child{border-bottom:none;}
+  .week-head{display:flex; justify-content:space-between; align-items:center; cursor:pointer; gap:10px;}
+  .week-head .wt{font-weight:700; font-size:0.88rem;}
+  .week-head .wsub{font-size:0.76rem; color:var(--text-muted);}
+  .week-body{display:none; margin-top:10px; gap:8px; flex-direction:column;}
+  .week-body.open{display:flex;}
+  .week-body input, .week-body select{padding:9px 10px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text); font-size:0.86rem;}
+  .field-row{display:flex; gap:8px; align-items:center;}
+  .field-row label{font-size:0.78rem; color:var(--text-muted); width:80px; flex-shrink:0;}
+
+  .task-item{display:flex; flex-direction:column; gap:8px;}
+  .task-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+  .task-name{font-size:0.86rem; font-weight:600; flex:1;}
+  .toggle{position:relative; width:42px; height:24px; background:var(--surface-2); border:1px solid var(--border); border-radius:999px; flex-shrink:0; cursor:pointer;}
+  .toggle .knob{position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:var(--text-muted); transition:transform .15s;}
+  .toggle.on{background:var(--good-tint); border-color:var(--good);}
+  .toggle.on .knob{transform:translateX(18px); background:var(--good);}
+  .conf-row{display:flex; gap:6px;}
+  .conf-dot{width:28px; height:28px; border-radius:50%; border:1px solid var(--border); background:var(--surface-2); color:var(--text-muted);
+    font-size:0.76rem; font-weight:700; display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .conf-dot.on{background:var(--primary); border-color:var(--primary); color:#fff;}
+  .domain-group-title{font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color:var(--text-muted); margin:16px 0 4px;}
+  .domain-group-title:first-child{margin-top:0;}
+
+  .log-item{padding:10px 0; border-bottom:1px solid var(--border); font-size:0.84rem; display:flex; justify-content:space-between; gap:10px;}
+  .log-item:last-child{border-bottom:none;}
+  .log-item .ld{color:var(--text-muted); font-size:0.76rem;}
+
+  table{width:100%; border-collapse:collapse; font-size:0.82rem;}
+  th,td{text-align:left; padding:8px 8px; border-bottom:1px solid var(--border);}
+  th{color:var(--text-muted); font-weight:700; font-size:0.7rem; text-transform:uppercase; letter-spacing:.03em;}
+  td code{background:var(--surface-2); padding:2px 5px; border-radius:6px; font-size:0.8rem;}
+  h3.section-h{font-size:0.92rem; margin:22px 0 8px; color:var(--text);}
+  h3.section-h:first-of-type{margin-top:4px;}
+  .empty-note{font-size:0.82rem; color:var(--text-muted); text-align:center; padding:14px 0;}
+</style>
+</head>
+<body>
+
+<header class="top"><h1 id="page-title">Flashcards</h1></header>
+
+<div class="wrap">
+
+  <!-- STUDY / FLASHCARDS -->
+  <section class="panel active" id="panel-study">
+    <div class="filters" id="fc-filters"></div>
+    <div class="card">
+      <div class="fc-meta">
+        <span id="fc-count">Card 1 of 36</span>
+        <span id="fc-domain-label"></span>
+      </div>
+      <div class="flashcard" id="flashcard"></div>
+      <div class="fc-controls">
+        <button class="btn btn-bad" id="fc-review">Review again</button>
+        <button class="btn btn-good" id="fc-know">Got it</button>
+      </div>
+      <div class="fc-controls row2">
+        <button class="btn btn-ghost" id="fc-prev">&larr; Prev</button>
+        <button class="btn btn-ghost" id="fc-flip">Flip</button>
+        <button class="btn btn-primary" id="fc-next">Next &rarr;</button>
+      </div>
+      <div class="fc-tally" id="fc-tally"></div>
+    </div>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="panel" id="panel-quiz">
+    <div class="card">
+      <div id="quiz-start" class="quiz-start">
+        <div class="filters" id="quiz-filters"></div>
+        <p>Pick a domain (or All) for a scenario-based practice set. Finishing a set logs your score to the Tracker automatically.</p>
+        <button class="btn btn-primary" id="quiz-begin" style="width:100%;">Start quiz</button>
+      </div>
+      <div id="quiz-active" style="display:none;">
+        <div class="q-progress" id="q-progress"></div>
+        <span class="q-domain-tag" id="q-domain-tag"></span>
+        <p class="q-text" id="q-text"></p>
+        <div id="q-options"></div>
+        <div class="explanation" id="q-explanation"></div>
+        <div class="quiz-footer">
+          <button class="btn btn-ghost" id="quiz-quit">Quit</button>
+          <button class="btn btn-primary" id="quiz-nextq" style="display:none;">Next &rarr;</button>
+        </div>
+      </div>
+      <div id="quiz-results" style="display:none;"></div>
+    </div>
+  </section>
+
+  <!-- TRACKER -->
+  <section class="panel" id="panel-tracker">
+    <div class="card">
+      <div class="sync-row">
+        <span class="pill muted" id="sync-status">Checking…</span>
+        <button class="btn btn-ghost" id="sync-now" style="flex:none; padding:8px 12px;">Sync now</button>
+      </div>
+      <div id="tracker-not-configured" style="display:none;" class="empty-note">
+        Not connected yet. Deploy the Apps Script backend and add your Web App URL + secret to <code>config.js</code> — see SETUP_GUIDE.md.
+      </div>
+      <div id="tracker-content" style="display:none;">
+        <div class="stat-grid">
+          <div class="stat"><div class="num" id="stat-completion">0%</div><div class="lbl">ECO tasks complete</div></div>
+          <div class="stat"><div class="num" id="stat-hours">0/0</div><div class="lbl">Hours logged</div></div>
+        </div>
+        <h3 class="section-h">Domain readiness</h3>
+        <div id="domain-bars"></div>
+        <h3 class="section-h">Practice exams</h3>
+        <div class="stat-grid">
+          <div class="stat"><div class="num" id="stat-best">—</div><div class="lbl">Best score</div></div>
+          <div class="stat"><div class="num" id="stat-latest">—</div><div class="lbl">Latest score</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="weekly-card" style="display:none;">
+      <h3 class="section-h" style="margin-top:0;">Weekly plan</h3>
+      <div id="weekly-list"></div>
+    </div>
+
+    <div class="card" id="checklist-card" style="display:none;">
+      <h3 class="section-h" style="margin-top:0;">ECO task checklist</h3>
+      <div id="checklist-list"></div>
+    </div>
+
+    <div class="card" id="log-card" style="display:none;">
+      <h3 class="section-h" style="margin-top:0;">Recent practice exams</h3>
+      <div id="log-list"></div>
+    </div>
+  </section>
+
+  <!-- FORMULAS -->
+  <section class="panel" id="panel-formulas">
+    <div class="card">
+      <h3 class="section-h" style="margin-top:0;">Earned Value Management</h3>
+      <table>
+        <tr><th>Term</th><th>Formula</th></tr>
+        <tr><td>Planned Value</td><td><code>PV</code></td></tr>
+        <tr><td>Earned Value</td><td><code>EV</code></td></tr>
+        <tr><td>Actual Cost</td><td><code>AC</code></td></tr>
+        <tr><td>Cost Variance</td><td><code>CV = EV − AC</code></td></tr>
+        <tr><td>Schedule Variance</td><td><code>SV = EV − PV</code></td></tr>
+        <tr><td>Cost Performance Index</td><td><code>CPI = EV / AC</code></td></tr>
+        <tr><td>Schedule Performance Index</td><td><code>SPI = EV / PV</code></td></tr>
+        <tr><td>EAC (typical)</td><td><code>BAC / CPI</code></td></tr>
+        <tr><td>EAC (atypical)</td><td><code>AC + (BAC − EV)</code></td></tr>
+        <tr><td>EAC (cost + schedule)</td><td><code>AC + (BAC−EV)/(CPI×SPI)</code></td></tr>
+        <tr><td>ETC</td><td><code>EAC − AC</code></td></tr>
+        <tr><td>VAC</td><td><code>BAC − EAC</code></td></tr>
+        <tr><td>TCPI (to meet BAC)</td><td><code>(BAC−EV)/(BAC−AC)</code></td></tr>
+        <tr><td>TCPI (to meet EAC)</td><td><code>(BAC−EV)/(EAC−AC)</code></td></tr>
+      </table>
+      <h3 class="section-h">Other formulas</h3>
+      <table>
+        <tr><th>Term</th><th>Formula</th></tr>
+        <tr><td>Communication channels</td><td><code>n(n−1)/2</code></td></tr>
+        <tr><td>Present Value</td><td><code>FV / (1+r)ⁿ</code></td></tr>
+      </table>
+      <h3 class="section-h">Conflict resolution</h3>
+      <table>
+        <tr><th>Technique</th><th>When</th></tr>
+        <tr><td>Collaborate</td><td>Time allows; best long-term</td></tr>
+        <tr><td>Compromise</td><td>Time is short</td></tr>
+        <tr><td>Smooth</td><td>Preserve harmony</td></tr>
+        <tr><td>Force</td><td>Urgent / policy issue</td></tr>
+        <tr><td>Withdraw</td><td>Trivial or cool-down</td></tr>
+      </table>
+      <h3 class="section-h">Risk responses</h3>
+      <table>
+        <tr><th>Threats</th><th>Opportunities</th></tr>
+        <tr><td>Avoid</td><td>Exploit</td></tr>
+        <tr><td>Mitigate</td><td>Enhance</td></tr>
+        <tr><td>Transfer</td><td>Share</td></tr>
+        <tr><td>Escalate</td><td>Escalate</td></tr>
+        <tr><td>Accept</td><td>Accept</td></tr>
+      </table>
+    </div>
+  </section>
+
+</div>
+
+<nav class="bottom">
+  <button class="tab-btn active" data-tab="study"><span class="ic">&#128218;</span>Study</button>
+  <button class="tab-btn" data-tab="quiz"><span class="ic">&#9998;&#65039;</span>Quiz</button>
+  <button class="tab-btn" data-tab="tracker"><span class="ic">&#128200;</span>Tracker</button>
+  <button class="tab-btn" data-tab="formulas"><span class="ic">&#128290;</span>Formulas</button>
+</nav>
+
+<script src="./config.js"></script>
+<script>
+const DOMAIN_CLASS = {"People":"people","Process":"process","Business Environment":"biz"};
+const TAB_TITLES = {study:"Flashcards", quiz:"Practice Quiz", tracker:"Tracker", formulas:"Formula Cheat Sheet"};
+
+/* ============ Content: Flashcards ============ */
+const FLASHCARDS = [
+  {d:"People", f:"Tuckman's stages of team development", b:"Forming → Storming → Norming → Performing → Adjourning"},
+  {d:"People", f:"Five conflict resolution techniques", b:"Collaborate/Problem Solve, Compromise/Reconcile, Smooth/Accommodate, Force/Direct, Withdraw/Avoid — Collaborate gives the best long-term outcome when time allows"},
+  {d:"People", f:"Communication channels formula", b:"n(n−1)/2, where n = number of stakeholders — e.g. 10 stakeholders = 45 channels"},
+  {d:"People", f:"Power/Interest Grid — 4 quadrants", b:"High power + high interest = Manage Closely; High power + low interest = Keep Satisfied; Low power + high interest = Keep Informed; Low power + low interest = Monitor"},
+  {d:"People", f:"Herzberg's Two-Factor Theory", b:"Hygiene factors (pay, conditions) prevent dissatisfaction but don't motivate; Motivators (achievement, recognition) drive real motivation"},
+  {d:"People", f:"Maslow's Hierarchy of Needs (bottom to top)", b:"Physiological → Safety → Social (Belonging) → Esteem → Self-actualization"},
+  {d:"People", f:"McGregor's Theory X vs Theory Y", b:"Theory X: workers dislike work, need control/supervision. Theory Y: workers are self-motivated and seek responsibility"},
+  {d:"People", f:"Servant leadership", b:"Leader prioritizes the team's growth and needs, removes impediments, and empowers decisions rather than directing — common in Agile/hybrid teams"},
+  {d:"People", f:"Emotional intelligence — 4 core competencies", b:"Self-awareness, self-management, social awareness, relationship management"},
+  {d:"People", f:"Ground rules", b:"Behavioral norms the team agrees to early on (meeting conduct, decision-making, communication) to guide collaboration and reduce conflict"},
+  {d:"People", f:"Virtual/hybrid team best practice", b:"Over-communicate, set clear collaboration protocols, use shared tools, and intentionally build trust — physical distance doesn't excuse ambiguity"},
+  {d:"People", f:"Salience Model", b:"Classifies stakeholders by three attributes: Power, Legitimacy, and Urgency, to prioritize engagement"},
+  {d:"Process", f:"EVM core inputs", b:"PV (Planned Value) = budgeted cost of scheduled work; EV (Earned Value) = budgeted cost of work performed; AC (Actual Cost) = actual cost incurred"},
+  {d:"Process", f:"EVM variances", b:"CV = EV − AC (negative = over budget); SV = EV − PV (negative = behind schedule)"},
+  {d:"Process", f:"EVM performance indices", b:"CPI = EV/AC (below 1 = over budget); SPI = EV/PV (below 1 = behind schedule)"},
+  {d:"Process", f:"EAC — typical variance formula", b:"EAC = BAC / CPI — assumes future work continues at the current cost-efficiency rate"},
+  {d:"Process", f:"TCPI — to meet the original budget", b:"TCPI = (BAC − EV) / (BAC − AC) — efficiency required on remaining work to hit BAC"},
+  {d:"Process", f:"Critical Path Method", b:"The longest duration path through the network diagram; determines the shortest possible project duration and has zero float"},
+  {d:"Process", f:"Total float vs. free float", b:"Total float = how long an activity can slip without delaying the project end date; Free float = how long it can slip without delaying its successor's early start"},
+  {d:"Process", f:"Contract types and risk allocation", b:"FFP: seller bears most cost risk. CPFF: buyer bears most cost risk. T&M: used for small, poorly-defined scope; risk shared, capped by not-to-exceed clauses"},
+  {d:"Process", f:"Procurement documents", b:"RFI = request general information; RFQ = request a price for a well-defined item; RFP = request a full proposal for a complex requirement"},
+  {d:"Process", f:"Seven basic quality tools", b:"Cause-and-effect (fishbone), control chart, check sheet, histogram, Pareto chart, scatter diagram, flowchart"},
+  {d:"Process", f:"Risk responses for threats", b:"Avoid, Mitigate, Transfer, Escalate, Accept"},
+  {d:"Process", f:"Risk responses for opportunities", b:"Exploit, Enhance, Share, Escalate, Accept"},
+  {d:"Business Environment", f:"Project governance", b:"The framework of functions, processes, and authority structures that guide and oversee project management activities within the organization"},
+  {d:"Business Environment", f:"Compliance", b:"Adherence to laws, regulations, organizational policies, and standards that apply to the project's product or process"},
+  {d:"Business Environment", f:"Change control process (typical flow)", b:"Submit change request → assess impact (scope/cost/schedule/risk) → Change Control Board decides → update baseline if approved → communicate to stakeholders"},
+  {d:"Business Environment", f:"Continuous improvement", b:"A Kaizen-style mindset of making incremental improvements to process and product using lessons learned and retrospectives, applied iteratively rather than once at closeout"},
+  {d:"Business Environment", f:"Organizational Process Assets (OPAs)", b:"The org's existing templates, historical records, policies, and procedures — inputs the project can reuse rather than reinvent"},
+  {d:"Business Environment", f:"Enterprise Environmental Factors (EEFs)", b:"Internal and external conditions — culture, market conditions, regulations, infrastructure — that influence the project but are outside the team's direct control"},
+  {d:"Business Environment", f:"PESTLE analysis", b:"A framework for scanning the external business environment: Political, Economic, Social, Technological, Legal, Environmental"},
+  {d:"Business Environment", f:"Benefits realization", b:"The ongoing process of tracking whether a project's deliverables actually produce the intended business value — often measured after the project closes, not just at handover"},
+  {d:"Business Environment", f:"Configuration management", b:"Controlling changes to a deliverable's characteristics/versions and ensuring consistency between the product and its documentation"},
+  {d:"Business Environment", f:"Issue log vs. risk register", b:"Issue log tracks problems that have already happened; risk register tracks uncertain future events that might happen"},
+  {d:"Business Environment", f:"Value-based delivery", b:"Prioritizing decisions and work sequencing based on the value delivered to stakeholders, not just on completing scope as originally defined"},
+  {d:"Business Environment", f:"Organizational change management", b:"A structured approach — communication, training, sponsorship — to help people and the organization adopt the new ways of working a project introduces"},
+];
+
+/* ============ Content: Quiz ============ */
+const QUIZ = [
+  {d:"People", q:"A team member has missed three consecutive deadlines. Using an emotionally intelligent approach, what should you do first?", opts:["Escalate to the sponsor immediately","Have a private conversation to understand the root cause","Reassign all their tasks to other team members","Document the issue for HR without discussing it"], correct:1, exp:"Emotionally intelligent leadership starts with empathetic, private dialogue to understand the cause before escalating or reassigning work."},
+  {d:"People", q:"Two senior stakeholders disagree on a feature's priority, and a decision is needed by tomorrow. Which technique fits best?", opts:["Smooth/Accommodate","Compromise/Reconcile","Withdraw/Avoid","Collaborate/Problem Solve"], correct:1, exp:"Collaboration gives the best outcome but needs time you don't have. Under a tight deadline, Compromise delivers a timely (if lose-lose) resolution."},
+  {d:"People", q:"A stakeholder has high influence over budget approval but has shown little interest in day-to-day project details. Per the Power/Interest Grid, how should you engage them?", opts:["Manage Closely","Keep Satisfied","Keep Informed","Monitor"], correct:1, exp:"High power + low interest = Keep Satisfied: don't overload them with detail, but ensure they stay content with outcomes."},
+  {d:"People", q:"A newly formed cross-functional team is still working out roles and hasn't yet experienced any real conflict. Which Tuckman stage are they in?", opts:["Storming","Norming","Forming","Performing"], correct:2, exp:"Forming is the early, polite stage before roles and conflicts surface — that comes next, in Storming."},
+  {d:"People", q:"A project has 12 stakeholders. How many communication channels exist?", opts:["66","132","24","144"], correct:0, exp:"n(n−1)/2 = 12×11/2 = 66."},
+  {d:"People", q:"In an Agile team, the PM increasingly removes blockers and lets the team self-organize decisions. This best reflects which leadership style?", opts:["Autocratic","Transactional","Servant leadership","Laissez-faire"], correct:2, exp:"Servant leadership prioritizes the team's needs and empowerment over directive control — standard in Agile/hybrid environments."},
+  {d:"People", q:"A senior engineer is the only person who understands a critical subsystem. What should the PM prioritize to reduce project risk?", opts:["Reducing the engineer's workload","Formal knowledge transfer/documentation and pairing","Replacing the engineer","Ignoring it since the engineer is reliable"], correct:1, exp:"'Help ensure knowledge transfer' is an explicit People-domain task — concentrated knowledge is a project risk to actively mitigate."},
+  {d:"People", q:"A remote team member feels disconnected from decisions made in ad-hoc hallway conversations at the main office. What's the best fix?", opts:["Move all decisions to formal, documented channels everyone can access","Ask the remote member to relocate","Ignore it — hallway talk is informal by nature","Only include them in the biggest decisions"], correct:0, exp:"Virtual/hybrid team best practice is over-communicating through shared, documented channels so no one is disadvantaged by location."},
+  {d:"Process", q:"A task has PV = $1,000, EV = $800, AC = $900. What's the project's status?", opts:["Over budget and ahead of schedule","Under budget and behind schedule","Over budget and behind schedule","On budget and on schedule"], correct:2, exp:"CPI = EV/AC = 0.89 (<1, over budget). SPI = EV/PV = 0.8 (<1, behind schedule)."},
+  {d:"Process", q:"You need a fixed price for a commodity item with a completely well-defined specification. Which procurement document fits?", opts:["RFI","RFQ","RFP","SOW"], correct:1, exp:"RFQ (Request for Quotation) is used when the requirement is well-defined and price is the main variable."},
+  {d:"Process", q:"Which contract type places the most cost risk on the seller?", opts:["Cost-Plus-Fixed-Fee (CPFF)","Time & Materials (T&M)","Firm-Fixed-Price (FFP)","Cost-Plus-Incentive-Fee (CPIF)"], correct:2, exp:"Under FFP the price is locked regardless of the seller's actual costs, so cost overruns are the seller's risk."},
+  {d:"Process", q:"A project is experiencing a one-time cost overrun that isn't expected to recur. Which EAC formula is most appropriate?", opts:["EAC = BAC / CPI","EAC = AC + (BAC − EV)","EAC = AC + (BAC − EV) / (CPI × SPI)","EAC = BAC × SPI"], correct:1, exp:"For an atypical, one-time variance, remaining work is assumed to proceed at the original plan: EAC = AC + (BAC − EV)."},
+  {d:"Process", q:"Defect data shows 80% of customer complaints trace back to 20% of root causes. Which quality tool identifies this?", opts:["Control chart","Scatter diagram","Pareto chart","Check sheet"], correct:2, exp:"A Pareto chart ranks causes by frequency, highlighting the 'vital few' driving most of the problems."},
+  {d:"Process", q:"Which of these is a Process-domain task under the new ECO, distinct from simply 'finishing the deliverables'?", opts:["Manage conflicts","Help ensure value-based delivery","Plan and manage risk","Evaluate external business environment changes"], correct:1, exp:"'Help ensure value-based delivery' is a Process-domain task focused on delivering value, not just completing scope."},
+  {d:"Process", q:"An activity has 3 days of total float. What does that mean?", opts:["It can slip 3 days without delaying its successor's early start","It can slip 3 days without delaying the project end date","It must start 3 days early","It is on the critical path"], correct:1, exp:"Total float is the delay an activity can absorb without pushing out the overall project finish date."},
+  {d:"Process", q:"A newly identified risk could shorten the schedule if it materializes. Which response strategy fits an opportunity like this?", opts:["Mitigate","Exploit","Transfer","Avoid"], correct:1, exp:"Exploit is the opportunity-side response used to try to ensure a positive risk actually happens (the opportunity's version of Avoid/Mitigate for threats)."},
+  {d:"Business Environment", q:"A stakeholder requests a scope change mid-sprint. What's the correct first step?", opts:["Implement it immediately since the stakeholder is senior","Route it through the change control process for impact assessment","Deny it outright to protect the baseline","Wait until the project closes to decide"], correct:1, exp:"All changes should be formally assessed for impact and routed through the change control process (and CCB, if one exists) before action."},
+  {d:"Business Environment", q:"A company template for project charters that the PM reuses on every project is an example of:", opts:["An Enterprise Environmental Factor (EEF)","An Organizational Process Asset (OPA)","A Business Case","A Configuration Item"], correct:1, exp:"OPAs are the organization's existing templates, historical data, and procedures — this template is a reusable OPA."},
+  {d:"Business Environment", q:"A new data-privacy law will affect how the project stores customer data. Which PESTLE category does this fall under?", opts:["Political","Economic","Legal","Technological"], correct:2, exp:"New regulations and laws fall under the Legal category of a PESTLE scan of the external business environment."},
+  {d:"Business Environment", q:"During execution, the team hits a vendor delivery delay that is actively disrupting work right now. Where should this be recorded?", opts:["Risk register","Issue log","Lessons learned register","Change log"], correct:1, exp:"The issue log tracks problems that have already occurred; the risk register is for uncertain future events."},
+  {d:"Business Environment", q:"Six months after go-live, the PM checks whether the new system actually reduced processing time as promised in the business case. This is an example of:", opts:["Configuration management","Benefits realization","Continuous improvement","Change control"], correct:1, exp:"Benefits realization tracks whether the delivered outputs actually produced the intended business value — often assessed after closure."},
+  {d:"Business Environment", q:"After each sprint, the team holds a retrospective and applies one process improvement before the next sprint starts. This reflects:", opts:["Configuration management","Governance","Continuous improvement","Compliance"], correct:2, exp:"Iteratively improving process/product based on lessons learned is the core of continuous improvement (Kaizen mindset)."},
+  {d:"Business Environment", q:"Users are resisting adoption of a new tool the project delivered, even though it works correctly. What should the PM prioritize?", opts:["Re-scope the project to remove the tool","Organizational change management — communication, training, sponsorship support","Ignore it since the tool meets requirements","Escalate to legal"], correct:1, exp:"'Support organizational change' is a Business Environment task — technical success doesn't guarantee adoption without a change management effort."},
+  {d:"Business Environment", q:"A regulator requires the project to follow a specific data-retention standard. Ensuring the project meets this is primarily an exercise in:", opts:["Risk management","Compliance","Procurement","Quality assurance"], correct:1, exp:"Meeting externally imposed laws, regulations, and standards is the definition of project compliance."},
+];
+
+/* ============ Small local-storage helper (per-device convenience only) ============ */
+function lsGet(key, fallback){
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch(e){ return fallback; }
+}
+function lsSet(key, val){
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){ /* ignore */ }
+}
+
+/* ============ Tabs ============ */
+document.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById("panel-" + btn.dataset.tab).classList.add("active");
+    document.getElementById("page-title").textContent = TAB_TITLES[btn.dataset.tab];
+    if (btn.dataset.tab === "tracker") loadTracker();
+  });
+});
+
+/* ============ Flashcards ============ */
+let fcDomain = "All"; let fcIndex = 0; let fcFlipped = false;
+let fcTally = lsGet("pmp_fc_tally", {know:0, review:0});
+
+function fcFiltered(){ return fcDomain === "All" ? FLASHCARDS : FLASHCARDS.filter(c => c.d === fcDomain); }
+
+function renderFcFilters(){
+  const domains = ["All","People","Process","Business Environment"];
+  const el = document.getElementById("fc-filters"); el.innerHTML = "";
+  domains.forEach(d => {
+    const b = document.createElement("button");
+    b.className = "chip" + (d === fcDomain ? " on" : ""); b.dataset.domain = d; b.textContent = d;
+    b.onclick = () => { fcDomain = d; fcIndex = 0; fcFlipped = false; renderFcFilters(); renderFlashcard(); };
+    el.appendChild(b);
+  });
+}
+function renderFlashcard(){
+  const list = fcFiltered();
+  if (fcIndex >= list.length) fcIndex = 0;
+  if (fcIndex < 0) fcIndex = list.length - 1;
+  const card = list[fcIndex];
+  const el = document.getElementById("flashcard");
+  el.className = "flashcard " + DOMAIN_CLASS[card.d];
+  el.innerHTML = fcFlipped
+    ? `<div><div>${card.b}</div><span class="hint">Tap to flip back</span></div>`
+    : `<div><div>${card.f}</div><span class="hint">Tap to reveal</span></div>`;
+  document.getElementById("fc-count").textContent = `Card ${fcIndex+1} of ${list.length}`;
+  document.getElementById("fc-domain-label").textContent = card.d;
+  document.getElementById("fc-tally").textContent = `All-time — Got it: ${fcTally.know} · Review again: ${fcTally.review}`;
+}
+document.getElementById("flashcard").onclick = () => { fcFlipped = !fcFlipped; renderFlashcard(); };
+document.getElementById("fc-flip").onclick = () => { fcFlipped = !fcFlipped; renderFlashcard(); };
+document.getElementById("fc-next").onclick = () => { fcIndex++; fcFlipped=false; renderFlashcard(); };
+document.getElementById("fc-prev").onclick = () => { fcIndex--; fcFlipped=false; renderFlashcard(); };
+document.getElementById("fc-know").onclick = () => { fcTally.know++; lsSet("pmp_fc_tally", fcTally); fcIndex++; fcFlipped=false; renderFlashcard(); };
+document.getElementById("fc-review").onclick = () => { fcTally.review++; lsSet("pmp_fc_tally", fcTally); fcIndex++; fcFlipped=false; renderFlashcard(); };
+renderFcFilters(); renderFlashcard();
+
+/* ============ Quiz ============ */
+let quizDomain = "All"; let quizQueue = []; let quizPos = 0; let quizAnswered = false;
+let quizScore = {People:{c:0,t:0}, Process:{c:0,t:0}, "Business Environment":{c:0,t:0}};
+
+function renderQuizFilters(){
+  const domains = ["All","People","Process","Business Environment"];
+  const el = document.getElementById("quiz-filters"); el.innerHTML = "";
+  domains.forEach(d => {
+    const b = document.createElement("button");
+    b.className = "chip" + (d === quizDomain ? " on" : ""); b.dataset.domain = d; b.textContent = d;
+    b.onclick = () => { quizDomain = d; renderQuizFilters(); };
+    el.appendChild(b);
+  });
+}
+renderQuizFilters();
+function shuffle(arr){ const a = arr.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+document.getElementById("quiz-begin").onclick = () => {
+  const pool = quizDomain === "All" ? QUIZ : QUIZ.filter(q => q.d === quizDomain);
+  quizQueue = shuffle(pool); quizPos = 0;
+  quizScore = {People:{c:0,t:0}, Process:{c:0,t:0}, "Business Environment":{c:0,t:0}};
+  document.getElementById("quiz-start").style.display = "none";
+  document.getElementById("quiz-results").style.display = "none";
+  document.getElementById("quiz-active").style.display = "block";
+  renderQuestion();
+};
+document.getElementById("quiz-quit").onclick = () => {
+  document.getElementById("quiz-active").style.display = "none";
+  document.getElementById("quiz-results").style.display = "none";
+  document.getElementById("quiz-start").style.display = "block";
+};
+function renderQuestion(){
+  quizAnswered = false;
+  const q = quizQueue[quizPos];
+  document.getElementById("q-progress").textContent = `Question ${quizPos+1} of ${quizQueue.length}`;
+  const tag = document.getElementById("q-domain-tag");
+  tag.textContent = q.d; tag.className = "q-domain-tag " + DOMAIN_CLASS[q.d];
+  document.getElementById("q-text").textContent = q.q;
+  const optsEl = document.getElementById("q-options"); optsEl.innerHTML = "";
+  q.opts.forEach((opt, i) => {
+    const b = document.createElement("button");
+    b.className = "option"; b.textContent = opt; b.onclick = () => selectAnswer(i);
+    optsEl.appendChild(b);
+  });
+  document.getElementById("q-explanation").className = "explanation";
+  document.getElementById("q-explanation").textContent = "";
+  document.getElementById("quiz-nextq").style.display = "none";
+}
+function selectAnswer(i){
+  if (quizAnswered) return; quizAnswered = true;
+  const q = quizQueue[quizPos];
+  const buttons = document.querySelectorAll("#q-options .option");
+  buttons.forEach((b, idx) => {
+    b.setAttribute("disabled", "true");
+    if (idx === q.correct) b.classList.add("correct");
+    else if (idx === i) b.classList.add("incorrect");
+  });
+  quizScore[q.d].t++; if (i === q.correct) quizScore[q.d].c++;
+  const expEl = document.getElementById("q-explanation");
+  expEl.textContent = (i === q.correct ? "Correct. " : "Not quite. ") + q.exp;
+  expEl.className = "explanation show";
+  document.getElementById("quiz-nextq").style.display = "inline-block";
+}
+document.getElementById("quiz-nextq").onclick = () => {
+  quizPos++;
+  if (quizPos >= quizQueue.length) showResults(); else renderQuestion();
+};
+function showResults(){
+  document.getElementById("quiz-active").style.display = "none";
+  const resEl = document.getElementById("quiz-results");
+  resEl.style.display = "block";
+  let totalC = 0, totalT = 0; let rows = "";
+  const perDomain = {};
+  ["People","Process","Business Environment"].forEach(d => {
+    const s = quizScore[d]; if (s.t === 0) return;
+    totalC += s.c; totalT += s.t;
+    const pct = Math.round((s.c / s.t) * 100); perDomain[d] = pct;
+    rows += `<div class="bar-row"><div class="bar-label">${d}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><div class="bar-pct">${pct}%</div></div>`;
+  });
+  const overallPct = totalT ? Math.round((totalC/totalT)*100) : 0;
+  resEl.innerHTML = `<h3 class="section-h" style="margin-top:0;">Score: ${totalC} / ${totalT} (${overallPct}%)</h3>
+    <p style="color:var(--text-muted); font-size:0.85rem;">Below 75% in any domain? Revisit that week in your Study Plan.</p>
+    ${rows}
+    <div class="fc-controls" style="margin-top:16px;"><button class="btn btn-primary" id="quiz-retry">Try another set</button></div>
+    <div class="empty-note" id="quiz-sync-note"></div>`;
+  document.getElementById("quiz-retry").onclick = () => { resEl.style.display = "none"; document.getElementById("quiz-start").style.display = "block"; };
+
+  // Auto-log this result to the tracker
+  const weakest = Object.keys(perDomain).reduce((a,b) => (perDomain[a] ?? 101) <= (perDomain[b] ?? 101) ? a : b, Object.keys(perDomain)[0]);
+  postQuizResult({
+    date: new Date().toISOString().slice(0,10),
+    examType: quizDomain === "All" ? "Full practice exam" : "Domain quiz",
+    overallScore: overallPct/100,
+    peopleScore: perDomain["People"] !== undefined ? perDomain["People"]/100 : "",
+    processScore: perDomain["Process"] !== undefined ? perDomain["Process"]/100 : "",
+    bizScore: perDomain["Business Environment"] !== undefined ? perDomain["Business Environment"]/100 : "",
+    weakestDomain: weakest || "",
+    notes: quizDomain === "All" ? "All domains" : quizDomain,
+  });
+}
+
+/* ============ Tracker sync (Google Sheets via Apps Script) ============ */
+const API = window.PMP_CONFIG || {};
+function isConfigured(){ return !!(API.SHEET_API_URL && API.SHEET_API_SECRET); }
+
+async function apiGet(){
+  const url = API.SHEET_API_URL + "?token=" + encodeURIComponent(API.SHEET_API_SECRET);
+  const res = await fetch(url);
+  return res.json();
+}
+async function apiPost(payload){
+  const res = await fetch(API.SHEET_API_URL, {
+    method: "POST",
+    headers: {"Content-Type": "text/plain;charset=utf-8"}, // avoids a CORS preflight against Apps Script
+    body: JSON.stringify(Object.assign({token: API.SHEET_API_SECRET}, payload)),
+  });
+  return res.json();
+}
+async function postQuizResult(result){
+  const noteEl = document.getElementById("quiz-sync-note");
+  if (!isConfigured()){ if (noteEl) noteEl.textContent = "Not connected — set up config.js to save this to your Tracker."; return; }
+  try {
+    await apiPost(Object.assign({type:"quiz_result"}, result));
+    if (noteEl) noteEl.textContent = "Saved to your Tracker.";
+  } catch(e){
+    if (noteEl) noteEl.textContent = "Couldn't sync (offline?) — try again from the Tracker tab.";
+  }
+}
+
+let trackerData = lsGet("pmp_tracker_cache", null);
+
+async function loadTracker(){
+  const statusEl = document.getElementById("sync-status");
+  if (!isConfigured()){
+    document.getElementById("tracker-not-configured").style.display = "block";
+    document.getElementById("tracker-content").style.display = "none";
+    statusEl.textContent = "Not configured"; statusEl.className = "pill warn";
+    return;
+  }
+  document.getElementById("tracker-not-configured").style.display = "none";
+  document.getElementById("tracker-content").style.display = "block";
+  document.getElementById("weekly-card").style.display = "block";
+  document.getElementById("checklist-card").style.display = "block";
+  document.getElementById("log-card").style.display = "block";
+
+  if (trackerData) renderTracker(trackerData); // instant paint from cache
+
+  statusEl.textContent = "Syncing…"; statusEl.className = "pill muted";
+  try {
+    const data = await apiGet();
+    if (data.error) throw new Error(data.error);
+    trackerData = data; lsSet("pmp_tracker_cache", data);
+    renderTracker(data);
+    statusEl.textContent = "Synced just now"; statusEl.className = "pill ok";
+  } catch(e){
+    statusEl.textContent = trackerData ? "Offline — showing last sync" : "Couldn't connect";
+    statusEl.className = "pill bad";
+  }
+}
+document.getElementById("sync-now").onclick = loadTracker;
+
+function renderTracker(data){
+  const checklist = data.domainChecklist || [];
+  const weekly = data.weeklyPlan || [];
+  const log = (data.practiceExamLog || []).slice().reverse();
+
+  const done = checklist.filter(t => String(t.done).toLowerCase() === "yes").length;
+  const total = checklist.length || 1;
+  document.getElementById("stat-completion").textContent = Math.round((done/total)*100) + "%";
+
+  const plannedH = weekly.reduce((s,w) => s + (Number(w.plannedHours)||0), 0);
+  const actualH = weekly.reduce((s,w) => s + (Number(w.actualHours)||0), 0);
+  document.getElementById("stat-hours").textContent = actualH + "/" + plannedH;
+
+  const domains = ["People","Process","Business Environment"];
+  const barsEl = document.getElementById("domain-bars"); barsEl.innerHTML = "";
+  domains.forEach(d => {
+    const items = checklist.filter(t => t.domain === d);
+    const dDone = items.filter(t => String(t.done).toLowerCase() === "yes").length;
+    const pct = items.length ? Math.round((dDone/items.length)*100) : 0;
+    barsEl.innerHTML += `<div class="bar-row"><div class="bar-label">${d}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div><div class="bar-pct">${pct}%</div></div>`;
+  });
+
+  const scored = log.filter(l => l.overallScore !== "" && l.overallScore !== null && l.overallScore !== undefined);
+  document.getElementById("stat-best").textContent = scored.length ? Math.round(Math.max(...scored.map(l=>Number(l.overallScore)))*100) + "%" : "—";
+  document.getElementById("stat-latest").textContent = scored.length ? Math.round(Number(scored[0].overallScore)*100) + "%" : "—";
+
+  // Weekly list
+  const wkEl = document.getElementById("weekly-list"); wkEl.innerHTML = "";
+  weekly.forEach(w => {
+    const div = document.createElement("div"); div.className = "week-item";
+    div.innerHTML = `
+      <div class="week-head">
+        <div><div class="wt">Week ${w.week} — ${w.focus}</div><div class="wsub">${w.dates} · ${w.domain}</div></div>
+        <span class="pill ${w.status==='Done'?'ok':(w.status==='In Progress'?'warn':'muted')}">${w.status||'Not Started'}</span>
+      </div>
+      <div class="week-body" id="wk-body-${w.row}">
+        <div class="field-row"><label>Actual hrs</label><input type="number" min="0" step="0.5" id="wk-hrs-${w.row}" value="${w.actualHours||''}"></div>
+        <div class="field-row"><label>Status</label>
+          <select id="wk-status-${w.row}">
+            <option value="Not Started" ${w.status==='Not Started'?'selected':''}>Not Started</option>
+            <option value="In Progress" ${w.status==='In Progress'?'selected':''}>In Progress</option>
+            <option value="Done" ${w.status==='Done'?'selected':''}>Done</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" data-row="${w.row}" data-save-week="1">Save</button>
+      </div>`;
+    div.querySelector(".week-head").onclick = () => {
+      document.getElementById(`wk-body-${w.row}`).classList.toggle("open");
+    };
+    wkEl.appendChild(div);
+  });
+  wkEl.querySelectorAll("[data-save-week]").forEach(btn => {
+    btn.onclick = async () => {
+      const row = Number(btn.dataset.row);
+      const hrs = document.getElementById(`wk-hrs-${row}`).value;
+      const status = document.getElementById(`wk-status-${row}`).value;
+      btn.textContent = "Saving…"; btn.disabled = true;
+      try { await apiPost({type:"hours_log", row, actualHours: hrs ? Number(hrs) : 0, status}); btn.textContent = "Saved"; }
+      catch(e){ btn.textContent = "Failed — retry"; }
+      btn.disabled = false;
+      setTimeout(loadTracker, 600);
+    };
+  });
+
+  // Checklist grouped by domain
+  const clEl = document.getElementById("checklist-list"); clEl.innerHTML = "";
+  domains.forEach(d => {
+    clEl.innerHTML += `<div class="domain-group-title">${d}</div>`;
+    checklist.filter(t => t.domain === d).forEach(t => {
+      const isDone = String(t.done).toLowerCase() === "yes";
+      const conf = Number(t.confidence)||3;
+      const wrapper = document.createElement("div"); wrapper.className = "task-item";
+      wrapper.innerHTML = `
+        <div class="task-top">
+          <div class="task-name">${t.task}</div>
+          <div class="toggle ${isDone?'on':''}" data-row="${t.row}" data-toggle="1"><div class="knob"></div></div>
+        </div>
+        <div class="conf-row" data-row="${t.row}" data-conf-row="1">
+          ${[1,2,3,4,5].map(n => `<div class="conf-dot ${n<=conf?'on':''}" data-n="${n}">${n}</div>`).join("")}
+        </div>`;
+      clEl.appendChild(wrapper);
+    });
+  });
+  clEl.querySelectorAll("[data-toggle]").forEach(t => {
+    t.onclick = async () => {
+      const willBeOn = !t.classList.contains("on");
+      t.classList.toggle("on");
+      try { await apiPost({type:"checklist_update", row:Number(t.dataset.row), done: willBeOn}); }
+      catch(e){ t.classList.toggle("on"); }
+      setTimeout(loadTracker, 600);
+    };
+  });
+  clEl.querySelectorAll("[data-conf-row]").forEach(row => {
+    row.querySelectorAll(".conf-dot").forEach(dot => {
+      dot.onclick = async () => {
+        const n = Number(dot.dataset.n);
+        row.querySelectorAll(".conf-dot").forEach(d2 => d2.classList.toggle("on", Number(d2.dataset.n) <= n));
+        try { await apiPost({type:"checklist_update", row:Number(row.dataset.row), confidence:n}); }
+        catch(e){ /* leave optimistic UI as-is; next sync will correct it */ }
+        setTimeout(loadTracker, 600);
+      };
+    });
+  });
+
+  // Recent exam log
+  const logEl = document.getElementById("log-list");
+  const recent = log.slice(0, 8);
+  logEl.innerHTML = recent.length ? "" : `<div class="empty-note">No practice exams logged yet — finish a quiz to see it here.</div>`;
+  recent.forEach(l => {
+    const pct = l.overallScore !== "" ? Math.round(Number(l.overallScore)*100) + "%" : "—";
+    logEl.innerHTML += `<div class="log-item"><div><div>${l.type || 'Quiz'} — ${l.notes || ''}</div><div class="ld">${l.date} · ${l.source||''} · weakest: ${l.weakestDomain||'—'}</div></div><div><strong>${pct}</strong></div></div>`;
+  });
+}
+
+/* ============ Service worker ============ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(()=>{}); });
+}
+
+/* Try an initial tracker load quietly so the pill is accurate if user jumps straight there */
+loadTracker();
+</script>
+</body>
+</html>
